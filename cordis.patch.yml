@@ -1,0 +1,14 @@
+# dsh-accountdisplayname-edit bundle patch.
+#
+# This file is the `dsh.bundle.patch` layer of the package, so
+# `dsh plugin --profile <name> add dsh-accountdisplayname-edit` mounts it by
+# appending this package to the profile's bundle stack — no profile file edits
+# needed. When the package is dropped into the profile's node_modules by hand,
+# the profile's own cordis.patch.yml carries the same single insert instead.
+#
+# `name` is the PACKAGE name (resolved through the profile's node_modules), not
+# the repository name; `id` is the stable loader identity used by settings and
+# diagnostics.
+- insert:
+    - id: account-display-name-edit
+      name: dsh-accountdisplayname-edit

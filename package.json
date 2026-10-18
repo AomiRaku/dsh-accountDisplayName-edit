@@ -1,0 +1,58 @@
+{
+  "name": "dsh-accountdisplayname-edit",
+  "version": "0.1.0",
+  "description": "Replaces the sidebar account label (the phone number or email) with text you set from a new row in the account menu, so screenshots do not expose the original.",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "account",
+    "display-name",
+    "nickname",
+    "privacy"
+  ],
+  "license": "MIT",
+  "author": "AomiRaku",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AomiRaku/dsh-accountDisplayName-edit.git"
+  },
+  "homepage": "https://github.com/AomiRaku/dsh-accountDisplayName-edit#readme",
+  "bugs": {
+    "url": "https://github.com/AomiRaku/dsh-accountDisplayName-edit/issues"
+  },
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/dom.test.mjs && node test/robustness.test.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  }
+}

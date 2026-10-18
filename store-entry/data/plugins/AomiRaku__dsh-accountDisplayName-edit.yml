@@ -1,0 +1,14 @@
+# Entry file for the awesome-dsh-plugin list.
+#
+# Copy this file to `data/plugins/AomiRaku__dsh-accountDisplayName-edit.yml` in a
+# fork of https://github.com/awesome-dsh-plugin/awesome-dsh-plugin and open one PR
+# adding exactly that file. Do not edit the generated READMEs by hand.
+#
+# Filename rule: `<owner>__<repo>.yml`, matching the repository exactly.
+
+url: https://github.com/AomiRaku/dsh-accountDisplayName-edit
+name: AomiRaku/dsh-accountDisplayName-edit
+category: ui
+description:
+  en: 'Replaces the sidebar account label (the phone number or email) with text you set from a new row in the account menu, so screenshots do not expose the original.'
+  zh: '把左下角账号处的文字（手机号/邮箱）替换为自定义文本，编辑入口加在账号菜单里，避免截图泄露隐私。'
