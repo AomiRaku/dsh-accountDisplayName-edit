@@ -1,28 +1,39 @@
 # dsh-accountdisplayname-edit
 
-Replaces the sidebar account label — the phone number or email DeepSeek Harness
-shows at the bottom-left — with text you choose, so screenshots do not expose it.
+Replaces the sidebar account label — the phone number, email, or account name
+DeepSeek Harness shows at the bottom-left — and the avatar above it, with a name
+and image you choose, so screenshots do not expose the original.
 
 The edit entry is a new **Edit display name** row in the account menu, the one you
-open by clicking that label.
+open by clicking that label. The dialog it opens holds both the avatar and the name.
 
 ## What it does
 
 - Replaces the account label text in the sidebar footer with a display name you set.
+- Replaces the launcher avatar with an image you pick from a local file.
 - Adds an **Edit display name** / **编辑显示名称** row to the account menu, directly
   under Settings.
-- Opens a small editor dialog: Save, Cancel, Use default. `Enter` saves, `Esc` cancels.
-- Saving an empty value restores the account's own text (the phone number or email).
-- Stores the value per browser in `localStorage` under
-  `dsh.account-display-name-edit.alias`.
+- Opens one editor dialog for both: pick or clear an avatar, type a name, then Save,
+  Cancel, or Use default. `Enter` saves, `Esc` cancels.
+- Both edits are drafts until Save — Cancel leaves the sidebar untouched.
+- Saving an empty value restores the account's own text; clearing the avatar restores
+  the account's own avatar.
+- A picked image is centre-cropped square, downscaled to 128×128 and re-encoded, so
+  the stored copy stays in the low tens of KB.
+- Stores both per browser in `localStorage`, under
+  `dsh.account-display-name-edit.alias` and `dsh.account-display-name-edit.avatar`.
 - Display only. The account, the credentials and the profile are never read or
   changed, and the plugin makes no network requests of its own.
 
 ## Requirements
 
-Built and verified against DSH `0.2.0-rc.2`. The host half imports nothing and the
-browser half fails soft, so a build whose DOM has moved on degrades to "no alias,
-no extra row" rather than an error — see [Compatibility](#compatibility).
+Built and verified against DSH `0.2.0-rc.2`. The account launcher and `Menu` DOM it
+targets — `data-signed-out`, the `_avatar` / `_label` spans, the portaled
+`div[role="menu"]` with its `role="presentation"` viewport and `itemIcon` /
+`itemLabel` rows — is unchanged in `0.2.1-rc.2`, which this package was checked
+against. The host half imports nothing and the browser half fails soft, so a build
+whose DOM has moved on degrades to "no override, no extra row" rather than an error —
+see [Compatibility](#compatibility).
 
 ## Install
 
@@ -61,13 +72,15 @@ file copy.
 
 1. Click the account row at the bottom of the sidebar.
 2. Choose **Edit display name**.
-3. Type the name you want and save. Save an empty value to go back to the
-   account's own text.
+3. Optionally click **Choose image…** and pick a PNG / JPG / WebP; the round preview
+   shows the cropped result. **Clear avatar** goes back to the account's own avatar.
+4. Type the name you want. Save an empty value to go back to the account's own text.
+5. Click **Save**. Nothing changes until you do.
 
 ## Uninstall
 
 Remove the insert from `cordis.patch.yml` and delete the package directory. The
-stored display name stays in the browser's `localStorage` until you clear it; the
+stored name and avatar stay in the browser's `localStorage` until you clear them; the
 plugin writes nothing else.
 
 ## How it works
@@ -96,13 +109,27 @@ therefore inherits that build's exact markup, classes and styling. Appending one
 node leaves React's own children untouched, and the row is removed with the menu
 because React never tracked it.
 
-Selectors use only stable identifiers, never the hashed CSS-module class prefixes:
+Selectors use only stable identifiers, never a hashed CSS-module prefix:
 
 - the launcher is `button[aria-haspopup="menu"][data-signed-out]`, an attribute the
-  account component always writes; its text node is found by the `_label` suffix
-  CSS modules keeps, falling back to "the last span in the button";
-- the menu is a `div[role="menu"]` that the `Menu` primitive portals to `<body>`,
+  account component always writes; the text node is found by the `_label` suffix and
+  the avatar by the `_avatar` suffix, with positional fallbacks;
+- the menu is a `div[role="menu"]` the `Menu` primitive portals to `<body>`,
   identified as the one that appeared after the launcher was activated.
+
+### How the avatar is replaced
+
+The avatar span's real contents are React's — an `<img>` or an initial. Rather than
+remove them, the plugin paints the picked image as the span's **background** and
+hides the span's children with one scoped rule:
+
+```css
+[data-dsh-accountdisplayname-edit-avatar="1"] > * { display: none !important }
+```
+
+That is two attribute writes and a background image; no React-owned node is detached,
+re-parented or replaced, so a later account refresh cannot collide with it. Clearing
+the avatar removes the attribute and the background, and the real avatar reappears.
 
 ### Failing soft
 
@@ -133,9 +160,9 @@ npm install
 npm test
 ```
 
-51 checks against a real DOM (jsdom + React 18.3.1):
+80 checks against a real DOM (jsdom + React 18.3.1):
 
-- `test/dom.test.mjs` — 35 checks: the bundle wrapper contract, `apply()`
+- `test/dom.test.mjs` — 36 checks: the bundle wrapper contract, `apply()`
   registration, label replacement, re-application after the account half re-renders,
   menu-row injection (label, icon, dropped shortcut, insertion position, shipped rows
   untouched), row activation closing the menu and opening the dialog, save and reset,
@@ -145,9 +172,14 @@ npm test
   the only span, an English locale, a menu rendered before its rows exist, no
   `document.body`, the account span replaced by a React remount, and disposal after
   the account row was removed.
+- `test/avatar.test.mjs` — 28 checks: a stored image painted on the launcher, the
+  scoped stylesheet, the real avatar left intact, the dialog's file input and
+  pick/clear controls, draft-vs-Save semantics for the avatar, a signed-out launcher
+  without an avatar span, a corrupted stored value, and disposal. Picking a file
+  itself is not exercised here: jsdom has no 2D canvas and never decodes images.
 
-It was also verified in a live DSH `0.2.0-rc.2`: the host entry reaches
-`fiberPhase: active`, and the running Web GUI's slot tree lists the plugin's
+It was also verified in a live DSH `0.2.0-rc.2`: the host entry reached
+`fiberPhase: active`, and the running Web GUI's slot tree listed the plugin's
 `shell.overlay` entry as active, which means the host served the bundle and the page
 materialized and ran it.
 
@@ -174,13 +206,16 @@ that order and fall back to images in this README when the file is absent.
 
 ## Known limitations
 
-- The menu row depends on the shipped account-menu DOM. A future release that
-  restructures it silently drops the row (the label replacement keeps working until
-  the launcher markup changes too); nothing breaks.
-- The display name lives in this browser's `localStorage`, so it is per-origin and
-  not synced across machines. It never reaches the account.
-- Only Simplified Chinese and English strings are bundled; the row follows the
-  client locale and falls back to Chinese.
+- The menu row and the avatar override depend on the shipped account-menu DOM. A
+  future release that restructures it silently drops that part — nothing breaks, but
+  the row or the avatar stops updating until this package follows the change.
+- The name and the avatar live in this browser's `localStorage`, so they are
+  per-origin and not synced across machines. They never reach the account.
+- The avatar is stored as a 128×128 PNG data URL. A file over 10 MB, or an encoding
+  that still exceeds the storage cap, is rejected with a message instead of being
+  silently dropped.
+- Only Simplified Chinese and English strings are bundled; the UI follows the client
+  locale and falls back to Chinese.
 
 ## License
 

@@ -1,25 +1,31 @@
 # dsh-accountdisplayname-edit
 
-把 DeepSeek Harness 侧边栏左下角的账号文字（手机号 / 邮箱）替换为你自定义的文本，
-避免截图泄露隐私。
+把 DeepSeek Harness 侧边栏左下角的账号文字（手机号 / 邮箱 / 账户名）**和上面的头像**
+替换为你自定义的名称和图片，避免截图泄露隐私。
 
-编辑入口就在账号菜单里：点左下角账号 → **编辑显示名称**。
+编辑入口就在账号菜单里：点左下角账号 → **编辑显示名称**。弹窗里同时可以改名和换头像。
 
 ## 功能
 
 - 侧边栏左下角的账号标签改为你设置的自定义文本。
+- 头像可以换成你从本地选的图片。
 - 账号菜单中新增一行 **编辑显示名称**，位于「设置」下方。
-- 弹出编辑对话框：保存 / 取消 / 恢复默认，`Enter` 保存，`Esc` 取消。
-- 留空保存即恢复账号原名（手机号或邮箱）。
-- 自定义文本按浏览器存在 `localStorage` 的
-  `dsh.account-display-name-edit.alias`。
+- 以上两项在同一个弹窗里编辑：选择 / 清除头像、输入名称，然后 保存 / 取消 / 恢复默认。
+  `Enter` 保存，`Esc` 取消。
+- 两项都是**草稿**，点「保存」才生效；点「取消」侧边栏不会有任何变化。
+- 名称留空保存即恢复账号原名；清空头像即恢复账号原头像。
+- 选中的图片会先居中裁成正方形、缩放到 128×128 再重新编码，存储体积通常只有几十 KB。
+- 名称和头像都按浏览器存在 `localStorage`：
+  `dsh.account-display-name-edit.alias` 与 `dsh.account-display-name-edit.avatar`。
 - **只改显示**：不读取也不修改账号、凭证与资料，插件自身不发任何网络请求。
 
 ## 环境要求
 
-在 DSH `0.2.0-rc.2` 上开发并验证。宿主侧不 import 任何模块，浏览器侧失败即降级，
-所以在结构已变化的版本上表现为「别名不生效、菜单里没有这一行」，而不是报错——
-详见[兼容性](#兼容性)。
+在 DSH `0.2.0-rc.2` 上开发并验证。它依赖的账号行与 `Menu` 结构——`data-signed-out`、
+`_avatar` / `_label` 两个 span、portal 到 `<body>` 的 `div[role="menu"]` 及其
+`role="presentation"` 视口与 `itemIcon` / `itemLabel` 行——在 `0.2.1-rc.2` 中**未变**，
+本包也对照该版本核对过。宿主侧不 import 任何模块，浏览器侧失败即降级，所以在结构
+已变化的版本上表现为「不覆盖、菜单里没有这一行」，而不是报错——详见[兼容性](#兼容性)。
 
 ## 安装
 
@@ -56,12 +62,15 @@ dsh plugin --profile <profile> add github:AomiRaku/dsh-accountDisplayName-edit
 
 1. 点击侧边栏底部的账号行。
 2. 选择 **编辑显示名称**。
-3. 输入想要显示的名称并保存。留空保存即恢复账号原名。
+3. 想换头像就点 **选择图片…** 选一张 PNG / JPG / WebP，圆形预览会显示裁剪结果；
+   点 **清除头像** 回到账号原头像。
+4. 输入想要的名称。留空保存即恢复账号原名。
+5. 点 **保存**。没点之前不会有任何变化。
 
 ## 卸载
 
 删掉 `cordis.patch.yml` 里那两行 insert，再删除包目录即可。
-`localStorage` 里的自定义文本会留在浏览器上直到你清掉；插件不写任何其他地方。
+`localStorage` 里的名称和头像会留在浏览器上直到你清掉；插件不写任何其他地方。
 
 ## 实现说明
 
@@ -89,9 +98,21 @@ dsh plugin --profile <profile> add github:AomiRaku/dsh-accountDisplayName-edit
 选择器只用稳定标识，不依赖会随构建变化的 CSS Modules 哈希前缀：
 
 - 触发器：`button[aria-haspopup="menu"][data-signed-out]`（该组件始终写入的属性）；
-  文本节点优先用 CSS Modules 保留的 `_label` 后缀，退化为「按钮里最后一个 span」。
+  文本节点优先用 `_label` 后缀、头像优先用 `_avatar` 后缀，两者都有位置退化方案。
 - 菜单：`Menu` 原语 `createPortal` 到 `<body>` 的 `div[role="menu"]`，
   以「在触发器被激活之后新出现的那一个」确认。
+
+### 头像怎么换的
+
+头像 span 里装的是 React 自己的节点（一张 `<img>` 或首字母）。插件**不删除**它们，
+而是把选中的图片画成该 span 的**背景图**，再用一条作用域规则把子节点隐藏：
+
+```css
+[data-dsh-accountdisplayname-edit-avatar="1"] > * { display: none !important }
+```
+
+也就是说只写两个属性 + 一个背景图，没有任何 React 拥有的节点被移除、搬移或替换，
+因此之后的账号刷新不会与它冲突。清除头像时移除该属性与背景图，原头像自然重现。
 
 ### 失败即降级
 
@@ -117,15 +138,19 @@ npm install
 npm test
 ```
 
-真实 DOM 上 51 项检查（jsdom + React 18.3.1）：
+真实 DOM 上 80 项检查（jsdom + React 18.3.1）：
 
-- `test/dom.test.mjs` —— 35 项：bundle 包装契约、`apply()` 注册、别名替换、
+- `test/dom.test.mjs` —— 36 项：bundle 包装契约、`apply()` 注册、别名替换、
   账号侧重渲染后重新覆盖、菜单行注入（文字 / 图标 / 去掉快捷键 / 插入位置 /
   不动原有行）、点击行关菜单并开弹窗、保存与恢复默认、卸载清理。
 - `test/robustness.test.mjs` —— 16 项失败即降级路径：账号行整体消失、
   `_label` 类名改名、折叠态（头像 span 是唯一 span）、英文 locale、
   菜单先渲染而菜单项尚未出现、没有 `document.body`、账号 span 被 React 整体替换、
   账号行已移除后再卸载。
+- `test/avatar.test.mjs` —— 28 项：已存图片绘制到账号行、作用域样式表、原头像节点保持
+  完整、弹窗里的文件选择与选择/清除控件、「草稿 vs 保存」语义、未登录（没有头像 span）
+  的账号行、损坏的存储值、以及卸载清理。**选文件这一步本身没有自动化**：jsdom 没有
+  2D canvas，也不会解码图片。
 
 另外在运行中的 DSH `0.2.0-rc.2` 上验证：宿主条目达到 `fiberPhase: active`，
 正在运行的 Web GUI 插槽树把本插件的 `shell.overlay` 条目标为 active，
@@ -152,11 +177,13 @@ store-entry/data/plugins/AomiRaku__dsh-accountDisplayName-edit.yml
 
 ## 已知限制
 
-- 菜单那一行依赖账号菜单的 DOM 结构。若未来版本重构它，该行会静默消失
-  （在触发器结构也变化前，文本替换仍继续工作），不会报错。
-- 自定义文本存在当前浏览器的 `localStorage`，按 origin 隔离，不跨机器同步，
+- 菜单那一行与头像覆盖都依赖账号菜单的 DOM 结构。若未来版本重构它，对应部分会静默失效
+  ——不会报错，但在本包跟进之前那一行或头像不再更新。
+- 名称与头像存在当前浏览器的 `localStorage`，按 origin 隔离，不跨机器同步，
   也永远不会写回账号。
-- 只内置简体中文与英文文案；菜单行跟随客户端 locale，缺省回落到中文。
+- 头像以 128×128 的 PNG data URL 存储。超过 10 MB 的文件、或编码后仍超出存储上限的，
+  会给出提示而不是静默丢弃。
+- 只内置简体中文与英文文案；界面跟随客户端 locale，缺省回落到中文。
 
 ## 许可证
 

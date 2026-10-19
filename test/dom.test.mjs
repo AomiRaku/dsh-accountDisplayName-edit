@@ -225,10 +225,13 @@ check('the shipped menu is dismissed with Escape', escapes >= 1, String(escapes)
 
 const dialog = host.querySelector('[role="dialog"]');
 check('the editor dialog opens', dialog !== null);
-check('dialog is titled 编辑显示名称', dialog?.querySelector('div')?.textContent === '编辑显示名称');
-const input = dialog?.querySelector('input');
+check('dialog is titled 编辑名称与头像', dialog?.getAttribute('aria-label') === '编辑名称与头像', dialog?.getAttribute('aria-label'));
+const input = dialog?.querySelector('input[type="text"]');
 check('dialog has the alias pre-filled', input?.value === 'Alice', input?.value);
-check('dialog exposes save / cancel / reset', dialog?.querySelectorAll('button').length === 3);
+const dialogButtons = dialog === null ? [] : [...dialog.querySelectorAll('button')];
+const buttonLabelled = (label) => dialogButtons.find((b) => b.textContent === label);
+check('dialog offers avatar pick + clear', buttonLabelled('选择图片…') !== undefined && buttonLabelled('清除头像') !== undefined);
+check('dialog exposes save / cancel / reset', buttonLabelled('保存') !== undefined && buttonLabelled('取消') !== undefined && buttonLabelled('恢复默认') !== undefined);
 
 // ------------------------------------------------------------- editor actions
 section('saving a new alias');
@@ -238,7 +241,7 @@ await act(async () => {
   input.dispatchEvent(new window.Event('input', { bubbles: true }));
 });
 await act(async () => {
-  dialog.querySelectorAll('button')[2].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  buttonLabelled('保存').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 });
 await frames(2);
 check('alias is stored trimmed', window.localStorage.getItem('dsh.account-display-name-edit.alias') === '匿名用户', window.localStorage.getItem('dsh.account-display-name-edit.alias'));
@@ -260,7 +263,9 @@ await act(async () => {
 await frames(2);
 const dialog2 = host.querySelector('[role="dialog"]');
 await act(async () => {
-  dialog2.querySelectorAll('button')[0].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  [...dialog2.querySelectorAll('button')]
+    .find((b) => b.textContent === '恢复默认')
+    .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 });
 await frames(2);
 check('alias cleared from storage', window.localStorage.getItem('dsh.account-display-name-edit.alias') === null, String(window.localStorage.getItem('dsh.account-display-name-edit.alias')));

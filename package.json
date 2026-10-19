@@ -1,13 +1,14 @@
 {
   "name": "dsh-accountdisplayname-edit",
-  "version": "0.1.0",
-  "description": "Replaces the sidebar account label (the phone number or email) with text you set from a new row in the account menu, so screenshots do not expose the original.",
+  "version": "0.2.0",
+  "description": "Replaces the sidebar account label (the phone number, email, or account name) and avatar with your own text and image, chosen from a new row in the account menu, so screenshots do not expose the original.",
   "keywords": [
     "deepseek-harness",
     "dsh",
     "dsh-plugin",
     "account",
     "display-name",
+    "avatar",
     "nickname",
     "privacy"
   ],
@@ -36,7 +37,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/dom.test.mjs && node test/robustness.test.mjs"
+    "test": "node test/dom.test.mjs && node test/robustness.test.mjs && node test/avatar.test.mjs"
   },
   "dsh": {
     "bundle": {
