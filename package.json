@@ -37,7 +37,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/dom.test.mjs && node test/robustness.test.mjs && node test/avatar.test.mjs"
+    "test": "node test/dom.test.mjs && node test/robustness.test.mjs && node test/avatar.test.mjs && node test/edge-cases.test.mjs"
   },
   "dsh": {
     "bundle": {

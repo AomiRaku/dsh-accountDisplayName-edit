@@ -217,11 +217,18 @@ check('shipped rows left untouched', menu.querySelectorAll('button[role="menuite
 
 // ------------------------------------------------------------ row activation
 section('opening the editor from the row');
+// Count the launcher toggles the row performs, and prove no document-wide Escape
+// is fired (which every other global key handler would also see).
+let launcherToggles = 0;
+trigger().addEventListener('click', () => {
+  launcherToggles += 1;
+});
+escapes = 0;
 await act(async () => {
   rowButton.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 });
 await frames(2);
-check('the shipped menu is dismissed with Escape', escapes >= 1, String(escapes));
+check('the launcher is toggled closed instead of sending a global Escape', launcherToggles >= 1 && escapes === 0, `toggles=${launcherToggles} escapes=${escapes}`);
 
 const dialog = host.querySelector('[role="dialog"]');
 check('the editor dialog opens', dialog !== null);
@@ -232,6 +239,13 @@ const dialogButtons = dialog === null ? [] : [...dialog.querySelectorAll('button
 const buttonLabelled = (label) => dialogButtons.find((b) => b.textContent === label);
 check('dialog offers avatar pick + clear', buttonLabelled('选择图片…') !== undefined && buttonLabelled('清除头像') !== undefined);
 check('dialog exposes save / cancel / reset', buttonLabelled('保存') !== undefined && buttonLabelled('取消') !== undefined && buttonLabelled('恢复默认') !== undefined);
+// Regression: the save button once used --dsw-alias-brand-primary with hardcoded
+// white text, which is white-on-white in the dark theme (brand-primary is near-white
+// there). It must use the shell Button's own tokens.
+check('save button carries the shell primary class', buttonLabelled('保存').className === 'dsh-adn-btn dsh-adn-btn--primary', buttonLabelled('保存').className);
+const buttonCss = (window.document.querySelector('style[data-dsh-accountdisplayname-edit-style]')?.textContent) ?? '';
+check('primary styling uses the button tokens, not the brand colour', buttonCss.includes('--dsw-alias-button-primary-fill') && buttonCss.includes('--dsw-alias-label-primary-foreground') && !buttonCss.includes('brand-primary'));
+check('buttons carry hover and focus states', buttonCss.includes('--dsw-alias-button-primary-hover') && buttonCss.includes(':focus-visible'));
 
 // ------------------------------------------------------------- editor actions
 section('saving a new alias');
@@ -270,10 +284,20 @@ await act(async () => {
 await frames(2);
 check('alias cleared from storage', window.localStorage.getItem('dsh.account-display-name-edit.alias') === null, String(window.localStorage.getItem('dsh.account-display-name-edit.alias')));
 check('shipped text handed back', labelNode().textContent === '181******40', labelNode().textContent);
+// This fixture's launcher has no toggle of its own, so the menu cannot be closed by
+// the click: the fallback must drop our injected row rather than leave it behind.
+check('the fallback drops the row when the toggle cannot close the menu', menu2.querySelector('[data-dsh-accountdisplayname-edit-row]') === null);
 
 // -------------------------------------------------------------------- dispose
 section('disposal');
-const liveRow = window.document.querySelector('[data-dsh-accountdisplayname-edit-row]');
+// Open the menu once more so a live row exists for the teardown to clean up.
+pressLauncher();
+const menu3Host = window.document.createElement('div');
+menu3Host.innerHTML = MENU;
+const menu3 = menu3Host.firstElementChild;
+window.document.body.appendChild(menu3);
+await frames(4);
+const liveRow = menu3.querySelector('[data-dsh-accountdisplayname-edit-row]');
 check('row exists before disposal', liveRow !== null);
 for (const dispose of disposers) {
   await act(async () => {

@@ -160,9 +160,9 @@ npm install
 npm test
 ```
 
-80 checks against a real DOM (jsdom + React 18.3.1):
+116 checks against a real DOM (jsdom + React 18.3.1):
 
-- `test/dom.test.mjs` — 36 checks: the bundle wrapper contract, `apply()`
+- `test/dom.test.mjs` — 40 checks: the bundle wrapper contract, `apply()`
   registration, label replacement, re-application after the account half re-renders,
   menu-row injection (label, icon, dropped shortcut, insertion position, shipped rows
   untouched), row activation closing the menu and opening the dialog, save and reset,
@@ -177,6 +177,15 @@ npm test
   pick/clear controls, draft-vs-Save semantics for the avatar, a signed-out launcher
   without an avatar span, a corrupted stored value, and disposal. Picking a file
   itself is not exercised here: jsdom has no 2D canvas and never decodes images.
+- `test/edge-cases.test.mjs` — 32 checks over the failure and teardown paths: a
+  disable landing between two frames of the menu poll, a re-enable after a disable
+  while the dialog was open, a name the browser refuses to persist, the collapsed
+  rail before and after it expands, double disposal, re-applying, the menu closing
+  through the launcher's own toggle instead of a document-wide Escape, the dialog's
+  Tab containment and short-window scrolling, the click path performing **zero**
+  document-wide queries while leaving the menu's own opening frame untouched, and a
+  re-created label node, avatar node, or whole launcher button being repainted
+  before the next frame (no flash).
 
 It was also verified in a live DSH `0.2.0-rc.2`: the host entry reached
 `fiberPhase: active`, and the running Web GUI's slot tree listed the plugin's
