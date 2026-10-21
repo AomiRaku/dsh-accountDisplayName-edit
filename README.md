@@ -77,6 +77,17 @@ file copy.
 4. Type the name you want. Save an empty value to go back to the account's own text.
 5. Click **Save**. Nothing changes until you do.
 
+## Screenshots
+
+The account menu, with the **Edit display name** row added under Settings, and the
+chosen name and avatar on the launcher below it:
+
+![The account menu with the Edit display name row](assets/screenshot-1.png)
+
+The editor dialog: avatar preview, name field, and Save / Cancel / Use default:
+
+![The editor dialog](assets/screenshot-2.png)
+
 ## Uninstall
 
 Remove the insert from `cordis.patch.yml` and delete the package directory. The
@@ -205,9 +216,10 @@ That one file, added to a fork of
 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin), is
 the whole submission — do not edit the generated READMEs by hand.
 
-Screenshots are optional. When you have them, add a `screenshots.json` next to
-`package.json` listing 1–8 repository-relative image paths; storefronts show them in
-that order and fall back to images in this README when the file is absent.
+Screenshots are declared in [`screenshots.json`](screenshots.json) next to
+`package.json`, which lists two repository-relative images in display order. They live
+in this repository, so replacing one is a push here — not a new pull request to the
+list.
 
 ```json
 ["assets/screenshot-1.png", "assets/screenshot-2.png"]

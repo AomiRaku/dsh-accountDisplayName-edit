@@ -67,6 +67,16 @@ dsh plugin --profile <profile> add github:AomiRaku/dsh-accountDisplayName-edit
 4. 输入想要的名称。留空保存即恢复账号原名。
 5. 点 **保存**。没点之前不会有任何变化。
 
+## 截图
+
+账号菜单：**设置** 下面多了一行 **编辑显示名称**，下方账号行显示自定义的名称与头像。
+
+![账号菜单里的「编辑显示名称」行](assets/screenshot-1.png)
+
+编辑弹窗：头像预览、名称输入框，以及「恢复默认 / 取消 / 保存」。
+
+![编辑弹窗](assets/screenshot-2.png)
+
 ## 卸载
 
 删掉 `cordis.patch.yml` 里那两行 insert，再删除包目录即可。
@@ -174,8 +184,8 @@ store-entry/data/plugins/AomiRaku__dsh-accountDisplayName-edit.yml
 把这一个文件加到 [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)
 的 fork 里就是完整投稿——**不要手工编辑生成出来的 README**。
 
-截图是可选项。有截图时，在 `package.json` 旁边放一个 `screenshots.json`，
-列出 1–8 张仓库内的相对路径；市场会按这个顺序展示，没有该文件时会从本 README 里抽取。
+截图在 `package.json` 旁边的 [`screenshots.json`](screenshots.json) 里声明，按展示顺序
+列出两张仓库内图片。图片就在本仓库，换图推这里即可，不用再向列表提 PR。
 
 ```json
 ["assets/screenshot-1.png", "assets/screenshot-2.png"]
