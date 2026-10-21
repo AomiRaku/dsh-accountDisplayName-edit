@@ -1,7 +1,11 @@
 {
   "name": "dsh-accountdisplayname-edit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Replaces the sidebar account label (the phone number, email, or account name) and avatar with your own text and image, chosen from a new row in the account menu, so screenshots do not expose the original.",
+  "title": {
+    "en": "Custom Account Name & Avatar",
+    "zh": "左下角用户名头像自定义"
+  },
   "keywords": [
     "deepseek-harness",
     "dsh",
