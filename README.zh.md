@@ -38,6 +38,8 @@
 
 ```sh
 dsh plugin --profile <profile> add github:AomiRaku/dsh-accountDisplayName-edit
+# 或者从 npm 安装，省掉 git 拉取与构建授权：
+dsh plugin --profile <profile> add dsh-accountdisplayname-edit
 ```
 
 **没有构建步骤，也没有 `prepare` 脚本**：浏览器侧 bundle 已作为 `lib/client.js`

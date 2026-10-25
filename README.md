@@ -47,6 +47,8 @@ the CLI refuses that profile by design.
 
 ```sh
 dsh plugin --profile <profile> add github:AomiRaku/dsh-accountDisplayName-edit
+# or from npm, which skips the git fetch and build approval entirely:
+dsh plugin --profile <profile> add dsh-accountdisplayname-edit
 ```
 
 There is **no build step and no `prepare` script**: the browser half is committed as
