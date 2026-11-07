@@ -48,6 +48,31 @@ const MENU = `
   <div class="Menu_viewport" role="presentation">${MENU_ROWS}</div>
 </div>`;
 
+/**
+ * A newer Menu build marks the row glyph `aria-hidden="true"` (as decorative
+ * artwork) on top of the shortcut span. The shortcut cleanup used to treat
+ * every `aria-hidden` node as a shortcut and removed the icon holder with it,
+ * so the injected row rendered as text only.
+ */
+const MENU_HIDDEN_ICON = `
+<div class="MenuSurface_surface Menu_list Menu_portal" role="menu" data-menu-material="translucent">
+  <div aria-hidden="true" class="MenuSurface_material"></div>
+  <div class="Menu_viewport" role="presentation">
+    <div class="Menu_itemWrap"><button type="button" role="menuitem" class="Menu_item"><span class="Menu_itemIcon" aria-hidden="true"><svg class="gear"></svg></span><span class="Menu_itemLabel">设置</span></button></div>
+    <div class="Menu_itemWrap"><button type="button" role="menuitem" class="Menu_item"><span class="Menu_itemIcon" aria-hidden="true"><svg class="logout"></svg></span><span class="Menu_itemLabel">退出登录</span></button></div>
+  </div>
+</div>`;
+
+/** A build that puts the glyph straight in the button, with no `_itemIcon`. */
+const MENU_FLAT_ICON = `
+<div class="MenuSurface_surface Menu_list Menu_portal" role="menu" data-menu-material="translucent">
+  <div aria-hidden="true" class="MenuSurface_material"></div>
+  <div class="Menu_viewport" role="presentation">
+    <div class="Menu_itemWrap"><button type="button" role="menuitem" class="Menu_item"><svg class="gear" aria-hidden="true" focusable="false"></svg><span class="Menu_itemLabel">设置</span></button></div>
+    <div class="Menu_itemWrap"><button type="button" role="menuitem" class="Menu_item"><svg class="logout" aria-hidden="true"></svg><span class="Menu_itemLabel">退出登录</span></button></div>
+  </div>
+</div>`;
+
 /** Build a fresh world, load the bundle into it, and hand back a driver. */
 function scenario(bodyHtml, options = {}) {
   const dom = new JSDOM(`<!doctype html><html><body>${bodyHtml}</body></html>`, {
@@ -116,7 +141,7 @@ function scenario(bodyHtml, options = {}) {
       trigger.dispatchEvent(new window.MouseEvent('pointerdown', { bubbles: true }));
       trigger.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
       const host = window.document.createElement('div');
-      host.innerHTML = MENU;
+      host.innerHTML = options.menu ?? MENU;
       const menu = host.firstElementChild;
       window.document.body.appendChild(menu);
       return menu;
@@ -256,6 +281,48 @@ console.log('\n== S8: disposal on a changed DOM');
     threw = error;
   }
   check('dispose() does not throw after the launcher is gone', threw === null, String(threw));
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n== S9: the row glyph carries aria-hidden (newer Menu build)');
+{
+  const world = scenario(LAUNCHER('<span class="ET65mq_label">181******40</span>'), { alias: 'Alice', menu: MENU_HIDDEN_ICON });
+  world.apply();
+  await world.frames(2);
+  const menu = world.openMenu();
+  await world.frames(4);
+  const row = menu.querySelector('[data-dsh-accountdisplayname-edit-row]');
+  const icon = row?.querySelector('[class*="_itemIcon"]');
+  check('the icon holder survives the shortcut cleanup', icon !== null && row.contains(icon) && icon.childNodes.length > 0);
+  check('the shipped glyph was replaced by the pencil', icon?.querySelector('svg.gear') === null && icon?.querySelector('svg path') !== null);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n== S9b: a shortcut span next to an aria-hidden glyph is still dropped');
+{
+  const world = scenario(LAUNCHER('<span class="ET65mq_label">181******40</span>'), { alias: 'Alice', menu: MENU });
+  world.apply();
+  await world.frames(2);
+  const menu = world.openMenu();
+  await world.frames(4);
+  const row = menu.querySelector('[data-dsh-accountdisplayname-edit-row]');
+  const icon = row?.querySelector('[class*="_itemIcon"]');
+  check('the shortcut is dropped', row?.querySelector('[class*="_shortcut"]') === null);
+  check('the icon still holds the pencil', icon !== null && row.contains(icon) && icon.querySelector('svg path') !== null);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n== S10: the glyph sits directly in the button (no _itemIcon)');
+{
+  const world = scenario(LAUNCHER('<span class="ET65mq_label">181******40</span>'), { alias: 'Alice', menu: MENU_FLAT_ICON });
+  world.apply();
+  await world.frames(2);
+  const menu = world.openMenu();
+  await world.frames(4);
+  const row = menu.querySelector('[data-dsh-accountdisplayname-edit-row]');
+  const button = row?.querySelector('button[role="menuitem"]');
+  check('the row keeps a glyph', button?.querySelector('svg') !== null);
+  check('the row glyph is the pencil', button?.querySelector('svg.gear') === null && button?.querySelector('svg path') !== null);
 }
 
 console.log(`\n${passed} passed, ${failures.length} failed`);
