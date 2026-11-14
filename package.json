@@ -1,6 +1,6 @@
 {
   "name": "dsh-accountdisplayname-edit",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Replaces the sidebar account label (the phone number, email, or account name) and avatar with your own text and image, chosen from a new row in the account menu, so screenshots do not expose the original.",
   "title": {
     "en": "Custom Account Name & Avatar",
@@ -41,7 +41,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/dom.test.mjs && node test/robustness.test.mjs && node test/avatar.test.mjs && node test/edge-cases.test.mjs"
+    "test": "node test/dom.test.mjs && node test/robustness.test.mjs && node test/avatar.test.mjs && node test/crop.test.mjs && node test/edge-cases.test.mjs"
   },
   "dsh": {
     "bundle": {

@@ -18,8 +18,11 @@ open by clicking that label. The dialog it opens holds both the avatar and the n
 - Both edits are drafts until Save — Cancel leaves the sidebar untouched.
 - Saving an empty value restores the account's own text; clearing the avatar restores
   the account's own avatar.
-- A picked image is centre-cropped square, downscaled to 128×128 and re-encoded, so
-  the stored copy stays in the low tens of KB.
+- A picked image opens a crop step first: drag to reposition, scroll or use the
+  slider to zoom, and the square you frame is what gets saved. Nothing reaches the
+  draft until you confirm, so Cancel leaves the previous avatar alone.
+- The confirmed crop is downscaled to 128×128 and re-encoded, so the stored copy
+  stays in the low tens of KB.
 - Stores both per browser in `localStorage`, under
   `dsh.account-display-name-edit.alias` and `dsh.account-display-name-edit.avatar`.
 - Display only. The account, the credentials and the profile are never read or
@@ -74,8 +77,10 @@ file copy.
 
 1. Click the account row at the bottom of the sidebar.
 2. Choose **Edit display name**.
-3. Optionally click **Choose image…** and pick a PNG / JPG / WebP; the round preview
-   shows the cropped result. **Clear avatar** goes back to the account's own avatar.
+3. Optionally click **Choose image…** and pick a PNG / JPG / WebP. A crop dialog
+   opens: drag the picture, scroll or use the slider to zoom, then confirm. The
+   round preview shows that crop; cancelling keeps the previous avatar.
+   **Clear avatar** goes back to the account's own avatar.
 4. Type the name you want. Save an empty value to go back to the account's own text.
 5. Click **Save**. Nothing changes until you do.
 
