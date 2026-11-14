@@ -174,8 +174,9 @@ section('a stored avatar is painted on the launcher');
 
   const buttons = dialog === null ? [] : [...dialog.querySelectorAll('button')];
   const label = (text) => buttons.find((b) => b.textContent === text);
+  const clearButton = dialog?.querySelector('button[aria-label="清除头像"]');
   check('dialog has 选择图片…', label('选择图片…') !== undefined);
-  check('dialog has 清除头像', label('清除头像') !== undefined);
+  check('dialog has a trash button for clearing the avatar', clearButton !== null && clearButton.querySelector('svg') !== null);
 
   const preview = dialog?.querySelector('[data-dsh-avatar-preview]');
   check('preview starts from the stored avatar', preview?.getAttribute('data-dsh-avatar-preview') === 'set', preview?.getAttribute('data-dsh-avatar-preview'));
@@ -184,11 +185,12 @@ section('a stored avatar is painted on the launcher');
   // -------------------------------------------------- clearing is draft-only
   section('clearing is a draft until Save');
   await act(async () => {
-    label('清除头像').dispatchEvent(new world.window.MouseEvent('click', { bubbles: true }));
+    clearButton.dispatchEvent(new world.window.MouseEvent('click', { bubbles: true }));
   });
   await world.frames(1);
   const clearedPreview = host.querySelector('[data-dsh-avatar-preview]');
   check('preview empties immediately', clearedPreview?.getAttribute('data-dsh-avatar-preview') === 'empty');
+  check('the empty preview shows the person placeholder', clearedPreview?.querySelector('svg') !== null);
   check('storage is untouched before Save', world.window.localStorage.getItem(AVATAR) === PNG);
   check('launcher image survives until Save', backgroundOf(avatarSpan(world.document)).includes('data:image/png'));
 

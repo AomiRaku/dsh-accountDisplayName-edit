@@ -216,8 +216,8 @@ section('picking a file opens the crop step instead of applying it');
   check('the viewport keeps a 1:1 box', viewport?.style.aspectRatio === '1 / 1', viewport?.style.aspectRatio);
 
   // Adjust the framing, then confirm.
-  const applyButton = buttonLabelled(cropDialog, '使用这张');
-  check('crop dialog offers 使用这张', applyButton !== undefined);
+  const applyButton = buttonLabelled(cropDialog, '使用');
+  check('crop dialog offers 使用', applyButton !== undefined);
   check('confirm is enabled once the image is measured', applyButton?.disabled === false);
 
   await act(async () => {

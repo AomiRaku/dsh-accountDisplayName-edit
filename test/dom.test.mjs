@@ -237,8 +237,25 @@ const input = dialog?.querySelector('input[type="text"]');
 check('dialog has the alias pre-filled', input?.value === 'Alice', input?.value);
 const dialogButtons = dialog === null ? [] : [...dialog.querySelectorAll('button')];
 const buttonLabelled = (label) => dialogButtons.find((b) => b.textContent === label);
-check('dialog offers avatar pick + clear', buttonLabelled('选择图片…') !== undefined && buttonLabelled('清除头像') !== undefined);
-check('dialog exposes save / cancel / reset', buttonLabelled('保存') !== undefined && buttonLabelled('取消') !== undefined && buttonLabelled('恢复默认') !== undefined);
+check('dialog offers avatar pick + clear', buttonLabelled('选择图片…') !== undefined && dialog?.querySelector('button[aria-label="清除头像"]') !== null);
+check('dialog exposes save and cancel', buttonLabelled('保存') !== undefined && buttonLabelled('取消') !== undefined);
+check('no reset button: clearing the fields is the way back', buttonLabelled('恢复默认') === undefined);
+
+section('the name field clears in place');
+const clearNameButton = dialog.querySelector('button[aria-label="清除名称"]');
+check('a clear button appears while the field holds text', clearNameButton !== null);
+await act(async () => {
+  clearNameButton.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+});
+await frames(1);
+check('clearing empties the field', dialog.querySelector('input[type="text"]').value === '', dialog.querySelector('input[type="text"]').value);
+check('the clear button disappears once the field is empty', dialog.querySelector('button[aria-label="清除名称"]') === null);
+// Restore the value the later save-path checks rely on.
+await act(async () => {
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(dialog.querySelector('input[type="text"]'), 'Alice');
+  dialog.querySelector('input[type="text"]').dispatchEvent(new window.Event('input', { bubbles: true }));
+});
 // Regression: the save button once used --dsw-alias-brand-primary with hardcoded
 // white text, which is white-on-white in the dark theme (brand-primary is near-white
 // there). It must use the shell Button's own tokens.
@@ -262,7 +279,7 @@ check('alias is stored trimmed', window.localStorage.getItem('dsh.account-displa
 check('sidebar label updated', labelNode().textContent === '匿名用户', labelNode().textContent);
 check('dialog closed after saving', host.querySelector('[role="dialog"]') === null);
 
-section('reset to the account name');
+section('clearing the name returns to the account text');
 pressLauncher();
 const menu2Host = window.document.createElement('div');
 menu2Host.innerHTML = MENU;
@@ -276,9 +293,17 @@ await act(async () => {
 });
 await frames(2);
 const dialog2 = host.querySelector('[role="dialog"]');
+// The avatar was already cleared above, so emptying the name and saving is the
+// whole "back to default" path now that the reset button is gone.
+const input2 = dialog2.querySelector('input[type="text"]');
+await act(async () => {
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(input2, '');
+  input2.dispatchEvent(new window.Event('input', { bubbles: true }));
+});
 await act(async () => {
   [...dialog2.querySelectorAll('button')]
-    .find((b) => b.textContent === '恢复默认')
+    .find((b) => b.textContent === '保存')
     .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 });
 await frames(2);
